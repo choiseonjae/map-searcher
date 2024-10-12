@@ -1,0 +1,8 @@
+servers:
+  kakao:
+    base-url: https://dapi.kakao.com
+    api-key: 698f73d6a684ac27110fac0a74bdfec9 # fixme ams 이나 github secret key 로 관리 필요
+  naver:
+    base-url: https://openapi.naver.com
+    client-id: rOzYywczURUvZ2vFJa1v
+    client-secret: GZwlPhVnIt # fixme ams 이나 github secret key 로 관리 필요

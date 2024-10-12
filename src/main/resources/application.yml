@@ -1,0 +1,14 @@
+spring:
+  application.name: map-searcher
+  config:
+    import:
+      - database.yml
+      - redis.yml
+      - apis.yml
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+logging:
+  config: classpath:logback/logback-spring.xml

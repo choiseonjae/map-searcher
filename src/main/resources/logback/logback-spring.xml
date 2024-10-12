@@ -1,0 +1,11 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <include resource="logback-appender.xml"/>
+    <springProfile name="default, local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="io.r2dbc.h2.H2Connection" level="ERROR"/>
+    </springProfile>
+</configuration>

@@ -1,0 +1,9 @@
+<included>
+    <springProperty scope="context" name="port" source="server.port"/>
+    <property name="LOG_PATTERN" value="[%clr(%-5level)] [${HOSTNAME}:%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] [%logger{5}:%method:%L] %msg%n"/>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+</included>

@@ -1,4 +1,4 @@
-package com.searcher.mapsearcher.controller
+package com.searcher.mapsearcher.controller.dto
 
 import com.searcher.mapsearcher.service.search_strategy.SearchResult
 

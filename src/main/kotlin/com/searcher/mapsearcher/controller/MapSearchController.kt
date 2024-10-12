@@ -1,5 +1,7 @@
 package com.searcher.mapsearcher.controller
 
+import com.searcher.mapsearcher.controller.dto.MapSearchResponse
+import com.searcher.mapsearcher.controller.dto.MapSearchTop10Response
 import com.searcher.mapsearcher.service.MapSearchService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

@@ -19,10 +19,54 @@
 ## API Documentation
 API docs 는 Swagger 를 통해서 확인 가능합니다.
 
+CURL 도 호출은 가능하지만, 한글 키워드의 경우 인코딩이 필요합니다.
+
+스웨거를 통해 호출하시면, 따로 인코딩 변환없이 호출 가능합니다. 
+
+```shell
+# 하나은행 조회 CURL
+curl -X GET "http://localhost:8080/api/v1/map/%ED%95%98%EB%82%98%EC%9D%80%ED%96%89" -H "Content-Type: application/json"
+```
+![curl_keyword.png](curl_keyword.png)
+
+
+```shell
+# 키워드 검색 순위 TOP 10 조회 CURL
+curl -X GET "http://localhost:8080/api/v1/map/top10" -H "Content-Type: application/json"
+```
+![curl_top10.png](curl_top10.png)
+
 http://localhost:8080/swagger-ui/index.html
 ![swagger.png](swagger.png)
 
 ## 요구사항 파악
+* 서비스 요구사항
+  * 사용자가 키워드를 입력하면 각 지도 API의 결과를 통합하여 반환
+    * 각 API 별 중복되는 정보의 우선 순위가 제일 높음
+      * Map을 통해 위치명을 Key로 지역 정보를 List의 형태로 적재
+      * List의 size 가 2 이상이면, 중복되는 정보 (우선순위 1)
+      * List의 size 가 1 이면, 유니크한 정보 (후순위 카카오 -> 네이버)
+    * 각 API 별 최대 5건의 정보를 조회하는데, 만약 특정 API가 5건 이하라면 다른 곳에서 추가 조회하여 총 10건을 맞춰야 함
+      * 각 API 별 10건씩 조회 후, 5건씩 추출 시도 -> 추출 총 건수가 10 미만이라면 10건이 될 때까지 다른 API에서 가져와 총 10건을 맞춤
+  * 검색이 높은 TOP 10에 대한 키워드를 조회 가능
+
+* 기술 요구사항
+  * 키워드 검색 count 증가의 경우, 분산락을 통한 동시성 이슈 해소
+    * lock 대기에 의한 병목을 고려해, count 증가 로직을 비동기로 구현
+    * 동기, 비동기 간 성능 테스트 진행 (약 3배의 성능 차이 확인. 1000건 병렬 호출 2s -> 0.5s )
+  * 카카오, 네이버 외에 추가적인 검색 API에 대한 유연한 확장을 고려해 Strategy Pattern 적용
+    * Search Interface만 추가적으로 구현으로 바로 적용 가능 (변경점 최소화)
+  * 대용량 트래픽 처리를 위한 작업
+    * coroutine - r2dbc - webclient - reactive redis 등 nio 기반 비동기 처리 시스템 구축
+    * 짧은 레이턴시를 위한 1차 캐싱 처리
+    * 고가용성을 위한 DR 캐싱 작업
+      * 장애 시, circuit breaker를 통한 장애 전파 차단 및 DR 캐시를 통한 서비스 가용성 향상
+    * 별도의 CoroutineScope를 통한 현재 코루틴과의 구조화된 동시성을 깨고, 완전 병렬적인 비동기 구조로 구현 
+
+* 프로그래밍 요구사항 
+  * UI 제외
+  * 단위 테스트 추가
+
 ## Project 구조
 ![project.png](project.png)
 1. 요청이 들어오면 (비동기) keyword count + 1을 진행합니다.

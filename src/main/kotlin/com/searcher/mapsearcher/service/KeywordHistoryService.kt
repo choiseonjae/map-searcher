@@ -19,7 +19,7 @@ class KeywordHistoryService(
 ) {
 
     suspend fun asyncIncreaseSearchCount(keyword: String) {
-        supervisorIoScope.launch { // 병렬
+        supervisorIoScope.launch { // 비동기
             reactiveRedisClient.lock("$VIEW_COUNT_LOCK::$keyword") { // 동시성 제어
                 incrementSearchCount(keyword) // 검색 count + 1
             }

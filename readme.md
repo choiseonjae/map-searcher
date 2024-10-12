@@ -116,7 +116,12 @@ application 의 package 구조는 아래와 같습니다.
     - `keyword_history` table
 - service : 비즈니스 로직을 처리를 담당하는 package
     - `searcher_strategy`  : Third Party 지도 API을 위한 구현체
-    - `MapSearcherService` : 검색된 결과를 처리하는 서비스
+      - `SearchStrategy.kt`: 지도 정보 제공자 인터페이스
+        - `KakaoMapSearchStrategy.kt`, `NaverMapSearchStrategy.kt`: 구현체들
+        - `SearchResult.kt`: 정보 제공자들의 공통화된 지도 정보 클래스
+      - `SearchStrategyService.kt`: 각 지도 정보 제공자들을 호출 및 캐싱 관리
+    - `MapSearcherService` : 검색된 결과를 처리(정렬, 필러링)하는 서비스
     - `KeywordService` : 키워드 검색 횟수를 처리하는 서비스
+    - `CacheService.kt`: 캐시 관리 및 fallback 처리
 
 ![package.png](package.png)

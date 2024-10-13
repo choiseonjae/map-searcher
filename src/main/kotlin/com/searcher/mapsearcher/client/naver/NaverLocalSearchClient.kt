@@ -4,7 +4,6 @@ import com.searcher.mapsearcher.client.DEFAULT_RETRY
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator
 import kotlinx.coroutines.reactor.awaitSingleOrNull
-import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -44,7 +43,6 @@ class NaverLocalSearchClient(
 
     companion object {
         const val SEARCH_KEYWORD_URL = "/v1/search/local.json"
-        private val log = KotlinLogging.logger { }
     }
 }
 

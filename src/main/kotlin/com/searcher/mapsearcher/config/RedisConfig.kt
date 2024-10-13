@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.embedded.RedisServer
+import java.net.Socket
 
 @Configuration
 class RedisConfig(
@@ -20,9 +21,15 @@ class RedisConfig(
 
     @PostConstruct
     fun startRedis() {
-        redisServer = RedisServer(redisPort)
-        redisServer.start()
+        if (!isPortInUse("127.0.0.1", redisPort)) {
+            redisServer = RedisServer(redisPort)
+            redisServer.start()
+        }
     }
+
+    private fun isPortInUse(host: String, port: Int): Boolean =
+        runCatching { Socket(host, port).use { true } }
+            .getOrDefault(false)
 
     @PreDestroy
     fun stopRedis() {

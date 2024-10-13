@@ -74,6 +74,9 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("com.navercorp.fixturemonkey:fixture-monkey-kotlin:1.0.0")
+    testImplementation("com.navercorp.fixturemonkey:fixture-monkey-starter-kotlin:1.0.0")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

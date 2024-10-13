@@ -1,54 +1,42 @@
 package com.searcher.mapsearcher.service
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.searcher.mapsearcher.client.redis.ReactiveRedisClient
-import com.searcher.mapsearcher.config.Jackson
-import com.searcher.mapsearcher.repository.KeywordHistoryRepository
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import kotlin.system.measureNanoTime
+import kotlin.time.Duration.Companion.seconds
 
 @SpringBootTest
+@Disabled("성능 테스트 용도")
 class MapSearchStrategyServiceTest @Autowired constructor(
     private val mapSearchService: MapSearchService,
-    private val keywordHistoryRepository: KeywordHistoryRepository,
-    private val reactiveRedisClient: ReactiveRedisClient,
 ) {
 
     @Test
-    fun `부하 테스트`(): Unit = runBlocking {
+    fun `부하 테스트 - 캐시가 존재하는 경우`(): Unit = runBlocking {
         val keyword = "하나은행"
-        val result = mapSearchService.searchKeyword(keyword)
-        delay(2000)
-        log.info { "result: ${Jackson.snakeCaseObjectMapper.writeValueAsString(result)}" }
+        val callSize = 10_000
+        mapSearchService.searchKeyword(keyword) // cache 사전 적재
+        delay(2.seconds)
 
-//        measureNanoTime {
-//            List(1000) {
-//                launch(Dispatchers.Default) {
-//                    mapSearchService.searchKeyword(keyword)
-//                }
-//            }.joinAll()
-//        }
-//            .also {
-//                log.info { "실행 시간: ${it / 1_000_000}ms" }
-//            }
-
-//        log.info { "DONE!" }
-
-//        delay(3000)
-
-        val type = object : TypeReference<Long>() {}
-        reactiveRedisClient.getCache(keyword, type)?.let {
-            log.info { "keyword: ${keyword}, searchCount: ${it}" }
-        }
-        keywordHistoryRepository.findAll().collect {
-            log.info { "keyword: ${it.keyword}, searchCount: ${it.searchCount}" }
+        val spentTime = measureNanoTime {
+            List(callSize) {
+                launch(Dispatchers.Default) {
+                    mapSearchService.searchKeyword(keyword)
+                }
+            }.joinAll()
         }
 
-        log.info { "PRINT DONE!" }
+        // 경과 시간 (초 단위로 변환)
+        val elapsedSeconds = spentTime.toDouble() / 1_000_000_000
+        // TPS 계산 (요청 수 / 경과 시간)
+        val tps = callSize / elapsedSeconds
+
+        // 로그 출력
+        log.info { "부하 테스트 완료 - 총 요청 수: $callSize, 경과 시간: ${"%.2f".format(elapsedSeconds)}초, TPS: ${"%.2f".format(tps)}" }
     }
 
     private val log = KotlinLogging.logger { }

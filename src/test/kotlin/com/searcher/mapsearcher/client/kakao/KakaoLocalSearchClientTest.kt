@@ -1,124 +1,47 @@
 package com.searcher.mapsearcher.client.kakao
 
-import com.searcher.mapsearcher.client.redis.ReactiveRedisClient
-import io.github.resilience4j.circuitbreaker.CircuitBreaker
-import io.mockk.MockKAnnotations
-import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.springframework.web.reactive.function.client.WebClient
+import com.searcher.mapsearcher.config.CircuitBreakerConfig
+import com.searcher.mapsearcher.config.WebClientConfig
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
-class KakaoLocalSearchClientTest {
+@SpringBootTest(
+    classes = [
+        KakaoLocalSearchClient::class,
+        WebClientConfig::class,
+        CircuitBreakerConfig::class,
+    ]
+)
+class KakaoLocalSearchClientTest @Autowired constructor(
+    private val kakaoLocalSearchClient: KakaoLocalSearchClient,
+) {
 
-    private val webClient: WebClient = mockk()
-    private val reactiveRedisClient: ReactiveRedisClient = mockk()
-    private val circuitBreaker: CircuitBreaker = mockk()
+    @Test
+    fun `카카오 로컬 검색 API 호출 테스트`() = runBlocking {
+        // given
+        val query = "하나은행"
+        val size = 10
 
-    private lateinit var kakaoLocalSearchClient: KakaoLocalSearchClient
+        // when
+        val response = kakaoLocalSearchClient.searchByKeyword(query, size)
 
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this)
-        kakaoLocalSearchClient = KakaoLocalSearchClient(
-            apiKey = "test-api-key",
-            webClient = webClient,
-            circuitBreaker = circuitBreaker,
-        )
+        // then
+        assert(response.documents.isNotEmpty())
     }
 
-//    @Test
-//    fun `API 호출 성공시 응답을 정상적으로 반환해야 한다`() = runBlocking {
-//        // Given
-//        val query = "테스트 쿼리"
-//        val expectedResponse = KakaoSearchResponse(emptyList(), KakaoSearchResponse.Meta(0, true, 0))
-//        mockWebClientResponse(expectedResponse)
-//
-//        // When
-//        val result = kakaoLocalSearchClient.searchByKeyword(query)
-//
-//        // Then
-//        assertEquals(expectedResponse, result)
-//        coVerify { reactiveRedisClient.updateCacheIfAbsent(query, expectedResponse, any()) }
-//    }
-//
-//    @Test
-//    fun `API가 null을 반환할 때 캐시된 응답을 반환해야 한다`() = runBlocking {
-//        // Given
-//        val query = "테스트 쿼리"
-//        val cachedResponse = KakaoSearchResponse(emptyList(), Meta(0, true, 0))
-//        mockWebClientResponse(null)
-//        coEvery { reactiveRedisClient.getCache(query, KakaoSearchResponse::class) } returns cachedResponse
-//
-//        // When
-//        val result = kakaoLocalSearchClient.searchByKeyword(query)
-//
-//        // Then
-//        assertEquals(cachedResponse, result)
-//    }
-//
-//    @Test
-//    fun `API가 null을 반환하고 캐시가 비어있을 때 NoSuchElementException을 던져야 한다`() = runBlocking {
-//        // Given
-//        val query = "테스트 쿼리"
-//        mockWebClientResponse(null)
-//        coEvery { reactiveRedisClient.getCache(query, KakaoSearchResponse::class) } returns null
-//
-//        // When & Then
-//        assertThrows<NoSuchElementException> {
-//            kakaoLocalSearchClient.searchByKeyword(query)
-//        }
-//    }
-//
-//    @Test
-//    fun `API 호출 중 오류 발생시 캐시된 응답을 반환해야 한다`() = runBlocking {
-//        // Given
-//        val query = "테스트 쿼리"
-//        val cachedResponse = KakaoSearchResponse(emptyList(), Meta(0, true, 0))
-//        mockWebClientError()
-//        coEvery { reactiveRedisClient.getCache(query, KakaoSearchResponse::class) } returns cachedResponse
-//
-//        // When
-//        val result = kakaoLocalSearchClient.searchByKeyword(query)
-//
-//        // Then
-//        assertEquals(cachedResponse, result)
-//    }
-//
-//    @Test
-//    fun `API 호출 중 오류 발생하고 캐시가 비어있을 때 NoSuchElementException을 던져야 한다`() = runBlocking {
-//        // Given
-//        val query = "테스트 쿼리"
-//        mockWebClientError()
-//        coEvery { reactiveRedisClient.getCache(query, KakaoSearchResponse::class) } returns null
-//
-//        // When & Then
-//        assertThrows<NoSuchElementException> {
-//            kakaoLocalSearchClient.searchByKeyword(query)
-//        }
-//    }
-//
-//    private fun mockWebClientResponse(response: KakaoSearchResponse?) {
-//        val requestHeadersMock = mockk<WebClient.RequestHeadersSpec<*>>()
-//        val responseMock = mockk<WebClient.ResponseSpec>()
-//
-//        every { webClient.get() } returns mockk {
-//            every { uri(any<(UriBuilder) -> Unit>()) } returns requestHeadersMock
-//            every { header(any(), any()) } returns requestHeadersMock
-//        }
-//        every { requestHeadersMock.retrieve() } returns responseMock
-//        every { responseMock.bodyToMono<KakaoSearchResponse>() } returns Mono.justOrEmpty(response)
-//        every { circuitBreaker.executeMonoWithFallback<KakaoSearchResponse>(any(), any()) } answers { firstArg<Mono<KakaoSearchResponse>>().toFuture().get() }
-//    }
-//
-//    private fun mockWebClientError() {
-//        val requestHeadersMock = mockk<WebClient.RequestHeadersSpec<*>>()
-//        val responseMock = mockk<WebClient.ResponseSpec>()
-//
-//        every { webClient.get() } returns mockk {
-//            every { uri(any<(UriBuilder) -> Unit>()) } returns requestHeadersMock
-//            every { header(any(), any()) } returns requestHeadersMock
-//        }
-//        every { requestHeadersMock.retrieve() } returns responseMock
-//        every { responseMock.bodyToMono<KakaoSearchResponse>() } returns Mono.error(RuntimeException("API Error"))
-//        every { circuitBreaker.executeMonoWithFallback<KakaoSearchResponse>(any(), any()) } returns Mono.error(RuntimeException("API Error"))
-//    }
+    @Test
+    fun `실제 API 호출 테스트 - 존재하지 않는 장소 검색`() = runBlocking {
+        // Given
+        val query = "절대로존재하지않는장소이름123456789"
+
+        // When
+        val result = kakaoLocalSearchClient.searchByKeyword(query)
+
+        assertNotNull(result)
+        assertTrue(result.documents.isEmpty())
+    }
 }

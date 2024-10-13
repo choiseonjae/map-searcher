@@ -54,7 +54,7 @@ class ReactiveRedisClient(
         waitTime: Duration = 10.seconds, // 락을 시도하는 대기 시간
         leaseTime: Duration = 1.seconds, // 락이 유지되는 시간
         action: suspend () -> Unit
-    ) = withContext(MDCContext() + singleThreadContext) {
+    ): Unit = withContext(MDCContext() + singleThreadContext) {
         runCatching {
             val lock = reactiveRedissonClient.getLock(key)
             val isLock = lock.tryLock(

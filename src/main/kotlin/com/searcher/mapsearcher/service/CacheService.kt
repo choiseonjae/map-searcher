@@ -18,7 +18,7 @@ class CacheService(
         fallback: suspend () -> T,
     ): T {
         return reactiveRedisClient.getCache(cacheKey, type)
-            ?: fallback()
+            ?: fallback.invoke()
     }
 
     suspend fun <T> asyncUpdateCache(cacheKey: String, value: T, duration: Duration) {

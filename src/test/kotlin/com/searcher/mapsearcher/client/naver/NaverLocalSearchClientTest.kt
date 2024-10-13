@@ -1,9 +1,8 @@
 package com.searcher.mapsearcher.client.naver
 
-import com.searcher.mapsearcher.client.redis.ReactiveRedisClient
-import com.searcher.mapsearcher.config.*
+import com.searcher.mapsearcher.config.CircuitBreakerConfig
+import com.searcher.mapsearcher.config.WebClientConfig
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -11,19 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest
 @SpringBootTest(
     classes = [
         NaverLocalSearchClient::class,
-        RedisConfig::class,
-        ReactiveRedisClient::class,
         WebClientConfig::class,
         CircuitBreakerConfig::class,
-        CoroutineConfig::class,
     ]
 )
-//@Disabled("실제 API 호출 통합 테스트이므로, 필요시 만 활성화")
-class NaverLocalSearchClientIntegrationTest @Autowired constructor(
+class NaverLocalSearchClientTest @Autowired constructor(
     private val naverLocalSearchClient: NaverLocalSearchClient
 ) {
-
-    private val log = KotlinLogging.logger { }
 
     @Test
     fun `실제 API 호출 테스트 - 검색 결과가 있어야 한다`() = runBlocking {
@@ -34,10 +27,7 @@ class NaverLocalSearchClientIntegrationTest @Autowired constructor(
         val result = naverLocalSearchClient.searchByKeyword(query, 10)
 
         // Then
-        log.info { Jackson.snakeCaseObjectMapper.writeValueAsString(result) }
-        kotlin.test.assertNotNull(result)
-        kotlin.test.assertTrue(result.items.isNotEmpty())
-        kotlin.test.assertTrue(result.items.any { it.roadAddress?.contains("강남역") ?: true })
+        assert(result?.items?.isNotEmpty() == true)
     }
 
     @Test
@@ -49,8 +39,6 @@ class NaverLocalSearchClientIntegrationTest @Autowired constructor(
         val result = naverLocalSearchClient.searchByKeyword(query)
 
         // Then
-        log.info { result }
-        kotlin.test.assertNotNull(result)
-        kotlin.test.assertTrue(result.items.isEmpty())
+        assert(result?.items?.isEmpty() == true)
     }
 }

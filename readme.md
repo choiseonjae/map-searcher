@@ -10,6 +10,7 @@
 - Redis (Embeded)
 - H2
 - Junit
+- FixtureMonkey
 
 ## Build, Run
 ```shell
@@ -53,7 +54,7 @@ http://localhost:8080/swagger-ui/index.html
 * 기술 요구사항
   * 키워드 검색 count 증가의 경우, 분산락을 통한 동시성 이슈 해소
     * lock 대기에 의한 병목을 고려해, count 증가 로직을 비동기로 구현
-    * 동기, 비동기 간 성능 테스트 진행 (약 3배의 성능 차이 확인. 1000건 병렬 호출 2s -> 0.5s )
+    * 동기, 비동기 간 성능 테스트 진행 (약 2배의 성능 차이 확인. 10000건 비동기 호출 5.8s -> 2.1s )
   * 카카오, 네이버 외에 추가적인 검색 API에 대한 유연한 확장을 고려해 Strategy Pattern 적용
     * Search Interface만 추가적으로 구현으로 바로 적용 가능 (변경점 최소화)
   * 대용량 트래픽 처리를 위한 작업
@@ -92,12 +93,41 @@ keyword | VARCHAR(255) | 검색된 키워드
 count | BIGINT | 검색 횟수
 
 ## Test Code List
+하나의 클래스는 하나의 책임만 가지도록 설계
+핵심적인 비즈니스 로직 테스트 코드를 작성합니다.
+
+* 실제 카카오 지도 API를 호출합니다.
+* 실제 네이버 지도 API를 호출합니다.
+* 키워드 검색 기록 관리 서비스 코드를 개발합니다.
+  * 상위 N개만 반환
+* 결과에 대한 정렬 및 필터링 로직을 테스트합니다.
+  * 중복된 정보 우선순위
+  * 중복된 정보가 없는 경우 우선순위
+  * 정보가 부족한 경우, 다른 API에서 가져오기
+* Cache MISS 및 API 오류 상황 시, DR 캐시 사용
+* 캐싱 테스트는 아래 성능 테스트로 대체합니다.
+
+![test_result](test_result.png)
 
 ## 성능테스트
-### 키워드 검색 (1000 request call)
+### 키워드 검색 (10000 request call)
 성능 테스트의 타겟은 Cache가 존재하는 상황으로 진행합니다.
-* 비동기 처리
-* 동기 처리
+![stress_test_code.png](stress_test_code.png)
+
+위와 같이 10000개의 키워드를 동시에 호출하는 테스트를 진행했습니다.
+* 키워드 count increase 로직 비동기 처리
+![stress_test_cache.png](stress_test_cache.png)
+
+* 키워드 count increase 로직 동기 처리
+코드는 다음과 같이 변경합니다.
+![async_remove_stress_test.png](async_remove_stress_test.png)
+![sync_test_result.png](sync_test_result.png)
+
+* 결론 
+10000건 기준으로 고부하 상황에서 둘 다 nio 기반 시스템으로 준수한 성능을 보였지만,
+레이턴시 측면에서 비동기 로직이 훨씬 좋은 성능을 보임을 확인.
+동기 키워드 증가 로직보다 조금은 비실시간 처리지만, 비동기로 처리하는 것이 더 효율적임을 확인.
+
 
 ## 특이사항
 1. 키워드 저장하는 데이터베이스는 손쉬운 어플리케이션 실행을 대비해 h2로 구현했습니다.

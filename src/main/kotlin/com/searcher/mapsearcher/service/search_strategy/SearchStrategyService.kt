@@ -5,7 +5,6 @@ import com.searcher.mapsearcher.service.CacheService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -24,7 +23,7 @@ class SearchStrategyService(
     // Cache Miss 시, API 호출
     private suspend fun cacheOrExecute(keyword: String, searcher: SearchStrategy): List<SearchResult> {
         val serviceName = searcher.javaClass.simpleName
-        val cacheKey = "$serviceName$keyword"
+        val cacheKey = "$serviceName::$keyword"
         val type = object : TypeReference<List<SearchResult>>() {}
         return cacheService.getCache(
             cacheKey= "$ONE_HOUR_CACHE$cacheKey",
@@ -57,6 +56,5 @@ class SearchStrategyService(
     companion object {
         private const val ONE_HOUR_CACHE = "MAP_SEARCHER::"
         private const val CACHE_FOR_DR = "DR::MAP_SEARCHER::"
-        private val log = KotlinLogging.logger { }
     }
 }

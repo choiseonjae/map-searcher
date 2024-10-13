@@ -29,6 +29,7 @@ CURL 도 호출은 가능하지만, 한글 키워드의 경우 인코딩이 필�
 curl -X GET "http://localhost:8080/api/v1/map/%ED%95%98%EB%82%98%EC%9D%80%ED%96%89" -H "Content-Type: application/json"
 ```
 ![curl_keyword.png](curl_keyword.png)
+![swagger_keyword.png](swagger_keyword.png)
 
 
 ```shell
@@ -36,6 +37,7 @@ curl -X GET "http://localhost:8080/api/v1/map/%ED%95%98%EB%82%98%EC%9D%80%ED%96%
 curl -X GET "http://localhost:8080/api/v1/map/top10" -H "Content-Type: application/json"
 ```
 ![curl_top10.png](curl_top10.png)
+![swagger_top10.png](swagger_top10.png)
 
 http://localhost:8080/swagger-ui/index.html
 ![swagger.png](swagger.png)

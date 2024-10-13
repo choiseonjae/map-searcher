@@ -39,7 +39,7 @@ curl -X GET "http://localhost:8080/api/v1/map/top10" -H "Content-Type: applicati
 ![curl_top10.png](curl_top10.png)
 ![swagger_top10.png](swagger_top10.png)
 
-http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/swagger-ui.html
 ![swagger.png](swagger.png)
 
 ## 요구사항 파악
@@ -61,6 +61,7 @@ http://localhost:8080/swagger-ui/index.html
     * Search Interface만 추가적으로 구현으로 바로 적용 가능 (변경점 최소화)
   * 대용량 트래픽 처리를 위한 작업
     * coroutine - r2dbc - webclient - reactive redis 등 nio 기반 비동기 처리 시스템 구축
+    ![nio.png](nio.png)
     * 짧은 레이턴시를 위한 1차 캐싱 처리
     * 고가용성을 위한 DR 캐싱 작업
       * 장애 시, circuit breaker를 통한 장애 전파 차단 및 DR 캐시를 통한 서비스 가용성 향상
